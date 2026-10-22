@@ -1,0 +1,540 @@
+BOA-MZ — Projecto lógico completo para reproduzir o Ntxuva no AI Studio
+O objectivo é desenvolver uma especificação técnica que possa ser submetida ao Google AI Studio para gerar um jogo digital funcional, baseado no Ntxuva do Sul de Moçambique, com tabuleiro de 4 filas × 8 casas (32 casas), regras de ataque e defesa, distribuição de sementes, capturas, alternância de jogadas e condições de vitória.
+A abordagem será a de um especialista em jogos tradicionais do tipo Mancala: primeiro definir o estado do jogo, depois formalizar as regras, construir o motor lógico, desenhar a interface e, finalmente, testar os resultados.
+Uma distinção importante: nem todas as variantes regionais do Ntxuva utilizam exactamente as mesmas regras. Por isso, a aplicação deverá separar as regras confirmadas das regras configuráveis que ainda precisam de validação junto de praticantes do Sul de Moçambique. O objectivo é produzir um jogo reproduzível e coerente sem apresentar decisões de programação como se fossem necessariamente regras tradicionais universais.
+1. Como configurar o projecto no Google AI Studio
+Recomendo começar como uma aplicação Web interactiva, adaptada a computadores, tablets e telemóveis. O modo Build do Google AI Studio permite gerar aplicações a partir de instruções em linguagem natural, produzir o código, visualizar o resultado e continuar a corrigir o projecto através de novos pedidos. 
+
+Google AI for Developers
++1
+
+
+
+A aplicação deverá ter três componentes principais:
+BOA-MZ
+Interface visual do jogo tradicional
+
+
+Motor de regras
+Jogadas legais · Semeadura · Ataque · Defesa · Capturas · Fases
+
+
+Dois jogadores
+No mesmo dispositivo
+
+
+Contra o computador
+Níveis de dificuldade
+
+
+
+
+A lógica do jogo não deverá depender de uma resposta gerada pela inteligência artificial durante cada jogada. O motor de regras deverá ser determinístico: a mesma posição, a mesma regra e a mesma jogada têm de produzir sempre o mesmo resultado.
+Regras de referência e pontos a validar
+As fontes consultadas descrevem características como as quatro filas, duas filas por jogador, distribuição no sentido anti-horário, continuação quando a última peça cai numa casa ocupada, distinção entre ataque e defesa e uma fase de movimentação de peças individuais. Contudo, as regras de captura variam entre descrições e implementações. 
+
+Planeta Editora
++2
+
+
+
+Por isso, o projecto terá um perfil inicial configurável, sem esconder as regras ainda por confirmar. A dimensão 4 × 8 será a configuração de desenvolvimento escolhida, e não uma afirmação de que todas as comunidades do Sul usam exclusivamente essa dimensão.
+2. Prompt principal para copiar e colar no Google AI Studio
+Abra o Google AI Studio — Build e seleccione a criação de uma aplicação. Copie integralmente o texto seguinte para a caixa de instruções.
+PROJECTO: BOA-MZ — JOGO DIGITAL DO NTXUVA DO SUL DE MOÇAMBIQUE
+1. PAPEL DA IA DE DESENVOLVIMENTO
+Actua como uma equipa multidisciplinar composta por:
+- Especialista em jogos tradicionais africanos do tipo Mancala.
+- Especialista em Ntxuva/Ntchuva praticado em Moçambique.
+- Engenheiro de software especializado em motores de jogos de tabuleiro.
+- Programador sénior de React, TypeScript e aplicações Web.
+- Especialista em inteligência artificial para jogos estratégicos.
+- Designer de interfaces digitais e experiência do utilizador.
+- Engenheiro de testes e controlo de qualidade de software.
+A tua missão é conceber, programar e testar uma aplicação funcional denominada BOA-MZ, destinada a preservar, ensinar e permitir jogar digitalmente o Ntxuva do Sul de Moçambique.
+Não entregues apenas uma demonstração visual, um protótipo estático, um documento conceptual ou um tabuleiro sem funcionamento. Implementa o jogo com regras executáveis, validação de jogadas, actualização do estado, capturas, condições de fim e possibilidade de reiniciar a partida.
+2. OBJECTIVO DO PROJECTO
+Criar uma aplicação digital que reproduza um modelo configurável do Ntxuva moçambicano com:
+- Tabuleiro de quatro filas e oito casas por fila.
+- Trinta e duas casas no total.
+- Dois jogadores.
+- Distribuição de sementes ou peças.
+- Filas interiores de ataque.
+- Filas exteriores de defesa.
+- Alternância de turnos.
+- Regras de semeadura e continuação.
+- Captura e remoção de peças.
+- Fase inicial e fase de peças individuais.
+- Detecção de vitória, derrota e empate quando aplicável.
+- Histórico de jogadas.
+- Modo de aprendizagem.
+- Modo para dois jogadores no mesmo dispositivo.
+- Modo contra o computador.
+- Configuração das variantes das regras.
+A aplicação deve chamar-se BOA-MZ e identificar claramente a variante activa como “Ntxuva do Sul de Moçambique — perfil 4 × 8”.
+Não declarar que todas as regras implementadas são universais. As regras incertas devem ser identificadas como configuráveis e sujeitas à validação cultural por praticantes experientes.
+3. TECNOLOGIAS
+Desenvolve inicialmente uma aplicação Web responsiva utilizando:
+- React.
+- TypeScript.
+- HTML5 e CSS moderno.
+- Componentes reutilizáveis.
+- SVG ou CSS para representar o tabuleiro e as peças.
+- Gestão de estado previsível.
+- Testes automatizados para o motor de regras.
+Organiza o código por módulos. Não coloques todas as regras, a interface e a inteligência artificial num único ficheiro.
+O motor do jogo deve funcionar independentemente da interface e sem depender de chamadas à Internet ou a um modelo generativo para validar cada jogada.
+Não necessito de autenticação, pagamentos ou base de dados na primeira versão. A partida deve poder funcionar localmente no navegador.
+4. ESTRUTURA DO TABULEIRO
+Criar exactamente 32 casas organizadas em quatro filas de oito casas.
+Representação visual inicial:
+Fila exterior do Jogador B — DEFESA
+[B0] [B1] [B2] [B3] [B4] [B5] [B6] [B7]
+Fila interior do Jogador B — ATAQUE
+[B8] [B9] [B10] [B11] [B12] [B13] [B14] [B15]
+Fila interior do Jogador A — ATAQUE
+[A8] [A9] [A10] [A11] [A12] [A13] [A14] [A15]
+Fila exterior do Jogador A — DEFESA
+[A0] [A1] [A2] [A3] [A4] [A5] [A6] [A7]
+Os identificadores acima são apenas referências internas de software. Não representam nomes tradicionais das casas.
+Cada casa deve ter:
+- Identificador interno único.
+- Fila e coluna.
+- Classificação: ataque ou defesa.
+- Proprietário inicial.
+- Número actual de peças.
+- Estado de selecção.
+- Estado de destaque para jogadas legais.
+Cada jogador controla inicialmente as duas filas do seu lado. A classificação ataque/defesa deve ser calculada através da posição da casa, não através da cor ou da sua aparência.
+A orientação e a sequência exacta da distribuição devem ser configuráveis e testadas. A interface deve indicar claramente o sentido da jogada.
+5. ESTADO INICIAL
+Criar um perfil inicial configurável com duas peças em cada uma das 32 casas, totalizando 64 peças.
+Distribuição inicial:
+- 16 casas por jogador.
+- 2 peças por casa.
+- 32 peças por jogador.
+- 64 peças no tabuleiro.
+- 0 peças capturadas no início.
+- Jogador A começa por defeito, mas permitir alterar essa opção nas definições.
+Antes de iniciar uma partida, mostrar um ecrã de configuração com:
+- Variante de regras.
+- Número de casas por fila: 8 na versão inicial.
+- Quantidade inicial de peças por casa.
+- Jogador que começa.
+- Modo de jogo.
+- Nível de dificuldade, se for contra o computador.
+A configuração de duas peças por casa deve ser um parâmetro editável, pois necessita de confirmação para o perfil regional seleccionado.
+6. MOTOR DE REGRAS
+Implementar um módulo independente chamado gameEngine.
+O motor deverá disponibilizar funções equivalentes a:
+- createInitialState(config)
+- getLegalMoves(state, player)
+- validateMove(state, move)
+- executeMove(state, move)
+- distributeSeeds(state, origin)
+- resolveLanding(state, destination)
+- resolveCapture(state, destination)
+- checkPhaseTransition(state)
+- checkGameOver(state)
+- getWinner(state)
+- undoMove(state)
+- getStateHash(state)
+Os nomes podem ser adaptados à arquitectura escolhida, mas as funções devem manter responsabilidades separadas e ser testáveis.
+Cada jogada deve ser processada como uma transacção lógica:
+1. Validar o estado actual.
+2. Validar o jogador activo.
+3. Validar a casa de origem.
+4. Verificar se a jogada é permitida.
+5. Criar uma cópia segura do estado.
+6. Executar a movimentação.
+7. Resolver as regras da última peça.
+8. Resolver uma eventual captura.
+9. Actualizar as peças capturadas.
+10. Verificar a mudança de fase.
+11. Verificar se o jogo terminou.
+12. Mudar o jogador activo, quando aplicável.
+13. Guardar o registo da jogada.
+14. Confirmar as invariantes do estado.
+Se uma jogada for inválida, rejeitá-la sem alterar qualquer elemento da partida.
+7. REGRAS DE DISTRIBUIÇÃO
+Implementar a distribuição de peças uma a uma, segundo o percurso definido na configuração activa.
+Regras-base do perfil inicial:
+A. O jogador escolhe uma casa válida do seu lado.
+B. Na primeira fase, só pode seleccionar uma casa com mais de uma peça, salvo se a variante validada determinar o contrário.
+C. O sistema recolhe todas as peças dessa casa.
+D. Coloca uma peça em cada casa sucessiva, respeitando o percurso anti-horário configurado.
+E. Quando a última peça cai numa casa que já contém peças, a continuação da jogada deve ser resolvida de acordo com a variante activa.
+F. Quando a última peça cai numa casa vazia de defesa, terminar a jogada, salvo se a variante activa determinar outra regra.
+G. Quando a última peça cai numa casa vazia de ataque, verificar as condições de captura da variante activa.
+H. A jogada termina apenas quando a regra aplicável determinar o fim.
+Não assumir que o percurso anti-horário significa simplesmente incrementar ou decrementar um índice. Criar uma função explícita que determine a próxima casa válida para cada posição, jogador e variante.
+Impedir ciclos infinitos. Se uma configuração ou regra produzir uma repetição ilimitada, detectar o problema e aplicar a política de repetição configurada, sem perder peças.
+8. REGRAS DE ATAQUE E DEFESA
+Criar um módulo de regras configuráveis denominado ruleProfile.
+Cada perfil deve conter:
+- Nome da variante.
+- Versão.
+- Dimensão do tabuleiro.
+- Distribuição inicial.
+- Percurso de semeadura.
+- Regras de continuação.
+- Condições de captura.
+- Tratamento das casas de defesa.
+- Regras de peças individuais.
+- Condições de vitória.
+- Regras de empate ou repetição.
+- Estado de validação cultural.
+Para a primeira versão, disponibilizar um perfil denominado:
+“NTXUVA-SUL-4X8 — PERFIL EXPERIMENTAL”.
+A. CASA VAZIA DE DEFESA
+Quando a última peça termina numa casa vazia de defesa, finalizar a jogada segundo a regra-base. Não efectuar captura automática nessa situação, a menos que o perfil validado determine o contrário.
+B. CASA VAZIA DE ATAQUE
+Quando a última peça termina numa casa vazia de ataque, verificar as casas correspondentes do adversário.
+A correspondência entre casas deve ser definida por uma função de mapeamento explícita, documentada e testada. Não inferir a correspondência apenas pelo número da casa.
+C. CAPTURA
+A regra de captura deve ser configurável. Incluir, pelo menos, os seguintes parâmetros:
+- Exigir que a casa de ataque correspondente do adversário tenha peças.
+- Capturar apenas a casa de ataque correspondente.
+- Capturar a casa de ataque e a casa de defesa da mesma coluna.
+- Capturar outras casas seleccionadas, caso a variante tradicional validada o permita.
+- Terminar a jogada quando não existirem peças elegíveis para captura.
+A configuração inicial deve activar apenas uma regra de captura expressamente definida no perfil. Não combinar automaticamente regras de variantes diferentes.
+Se a regra escolhida ainda não estiver confirmada por praticantes, identificá-la como “provisória” nas definições e no manual de regras.
+D. FUGA E JOGADAS NÃO OBRIGATÓRIAS
+Permitir configurar se a captura é obrigatória e se o jogador pode escolher outra jogada para evitar uma ameaça. Não impor a captura obrigatória sem confirmação da variante seleccionada.
+E. PROPRIEDADE DAS CASAS
+Definir explicitamente quais as casas de origem permitidas para cada jogador e quais as casas de destino que fazem parte do percurso. Não presumir que a distribuição pode atravessar todas as casas do tabuleiro sem confirmar a regra do perfil.
+9. FASE DAS PEÇAS INDIVIDUAIS
+Implementar um sistema de fases:
+FASE 1 — DISTRIBUIÇÃO DE GRUPOS
+O jogador inicia a jogada numa casa com mais de uma peça, segundo as regras activas.
+FASE 2 — MOVIMENTAÇÃO INDIVIDUAL
+Quando a condição de transição definida no perfil se verificar, o jogo passa para a fase de peças individuais.
+Nesta fase:
+- Permitir seleccionar uma casa com uma única peça, quando legal.
+- Aplicar o movimento individual definido no perfil.
+- Impedir que o jogador junte peças se a variante proibir essa acção.
+- Verificar a captura de acordo com as regras da fase.
+- Não mudar de fase de forma irreversível sem guardar o estado anterior.
+A condição de transição deve ser um parâmetro explícito, porque a formulação exacta da segunda fase necessita de validação. Não presumir que a transição ocorre simplesmente quando todas as casas têm uma peça.
+Apresentar no ecrã a fase actual e uma explicação curta.
+10. CONDIÇÕES DE VITÓRIA
+Criar condições configuráveis para:
+- Vitória por eliminação de todas as peças adversárias.
+- Fim por ausência de jogadas legais, se a variante seleccionada o determinar.
+- Empate ou repetição de posições, quando aplicável.
+- Fim por limite de jogadas, apenas se activado nas definições.
+O motor deve distinguir:
+- Jogador vencedor.
+- Jogador derrotado.
+- Empate.
+- Jogo ainda em curso.
+- Posição inválida que necessita de recuperação.
+Não declarar vitória apenas porque um jogador ficou sem peças numa casa específica. Avaliar o estado completo e as regras do perfil.
+Quando o jogo termina:
+- Bloquear novas jogadas.
+- Mostrar o resultado.
+- Mostrar estatísticas da partida.
+- Disponibilizar “Nova partida”.
+- Permitir rever o histórico.
+11. INTELIGÊNCIA ARTIFICIAL DO ADVERSÁRIO
+Implementar três níveis:
+FÁCIL
+Escolher aleatoriamente entre jogadas legais, com preferência ligeira por movimentos que permitam continuar a jogar.
+MÉDIO
+Avaliar:
+- Peças capturadas.
+- Risco de perder peças.
+- Possibilidade de captura na próxima jogada.
+- Mobilidade das casas.
+- Protecção das casas de ataque.
+- Capacidade de manter jogadas legais.
+DIFÍCIL
+Usar pesquisa minimax com poda alfa-beta ou método equivalente. Implementar uma função de avaliação baseada em:
+- Diferença de peças capturadas.
+- Número de peças no tabuleiro.
+- Possibilidades de captura.
+- Mobilidade.
+- Distribuição de peças nas filas de ataque e defesa.
+- Estado da fase do jogo.
+- Risco de derrota.
+A IA só pode escolher jogadas devolvidas pelo motor como legais. Não permitir que a IA altere directamente o estado do tabuleiro.
+Se a profundidade de pesquisa for elevada, executar a pesquisa sem bloquear a interface.
+Não utilizar Gemini para decidir cada movimento. O adversário deve funcionar de forma previsível, rápida e offline após carregar a aplicação.
+12. INTERFACE E EXPERIÊNCIA DO UTILIZADOR
+Criar uma interface moderna que respeite a identidade cultural moçambicana, sem transformar o jogo num desenho infantil.
+Elementos obrigatórios:
+- Nome BOA-MZ.
+- Tabuleiro central e visualmente dominante.
+- 32 casas circulares claramente identificadas.
+- Peças visíveis e fáceis de contar.
+- Cores contrastantes entre jogadores.
+- Identificação das filas de ataque e defesa.
+- Indicação do jogador activo.
+- Indicação da fase.
+- Painel de peças capturadas.
+- Histórico de jogadas.
+- Botões para reiniciar, desfazer e consultar regras.
+- Mensagens de jogadas inválidas.
+- Realce das casas seleccionadas e das jogadas legais.
+- Animação opcional da distribuição.
+- Opção para desactivar animações.
+- Design adaptável a computador, tablet e telemóvel.
+- Acessibilidade por teclado e contraste adequado.
+Não utilizar cores como único meio de distinguir os jogadores. Combinar cores com símbolos ou padrões.
+Antes de iniciar a partida, apresentar:
+1. Jogar contra outra pessoa.
+2. Jogar contra o computador.
+3. Aprender as regras.
+4. Consultar as definições da variante.
+5. Ver a origem cultural do Ntxuva.
+13. MODO DE APRENDIZAGEM
+Criar um tutorial interactivo que ensine:
+- O objectivo do jogo.
+- A distribuição inicial.
+- A diferença entre ataque e defesa.
+- A selecção da casa de origem.
+- A distribuição das peças.
+- A continuação da jogada.
+- As condições de captura.
+- A segunda fase.
+- As condições de vitória.
+Cada etapa deve conter uma demonstração real no tabuleiro. O tutorial não deve avançar se o utilizador realizar uma acção incompatível com a regra ensinada.
+Mostrar avisos quando uma regra pertence ao perfil experimental e ainda carece de validação tradicional.
+14. HISTÓRICO E REPOSIÇÃO
+Guardar cada jogada com:
+- Número do turno.
+- Jogador.
+- Casa de origem.
+- Casas percorridas.
+- Estado antes da jogada.
+- Estado depois da jogada.
+- Peças capturadas.
+- Mudança de fase.
+- Resultado da jogada.
+Implementar desfazer e refazer sem criar ou perder peças.
+Permitir guardar e recuperar uma partida localmente. Validar o estado recuperado antes de continuar.
+15. INVARIANTES E INTEGRIDADE
+Durante uma partida sem peças retiradas por regras especiais:
+- O tabuleiro tem sempre 32 casas.
+- O número de peças em cada casa é um inteiro não negativo.
+- Nenhuma jogada cria peças.
+- Nenhuma jogada perde peças sem registo de captura.
+- A soma das peças no tabuleiro e das peças capturadas mantém-se constante.
+- O jogador activo é sempre um dos jogadores válidos.
+- Uma jogada ilegal não altera o estado.
+- Um jogo terminado não aceita novas jogadas.
+Criar uma função de auditoria que valide todas as invariantes depois de cada jogada.
+Se uma invariante falhar, impedir a continuação da partida e apresentar uma mensagem técnica clara, sem corromper o estado anterior.
+16. TESTES AUTOMATIZADOS
+Criar testes unitários e testes de integração para os seguintes cenários:
+TESTE 1 — INICIALIZAÇÃO
+Dado o perfil de duas peças por casa, confirmar 32 casas, 64 peças totais e 32 peças por jogador.
+TESTE 2 — CASAS VAZIAS
+Confirmar que as casas começam sem selecção e que os identificadores são únicos.
+TESTE 3 — ORIGEM INVÁLIDA
+Tentar iniciar uma jogada numa casa vazia. A jogada deve ser rejeitada e o estado permanecer inalterado.
+TESTE 4 — DISTRIBUIÇÃO
+Escolher uma casa com várias peças e confirmar que cada peça é colocada segundo o percurso definido.
+TESTE 5 — CONTINUAÇÃO
+Quando a última peça cai numa casa ocupada, confirmar o comportamento definido pelo perfil.
+TESTE 6 — DEFESA
+Quando a última peça cai numa casa vazia de defesa, verificar o fim da jogada conforme a regra activa.
+TESTE 7 — ATAQUE
+Quando a última peça cai numa casa vazia de ataque, verificar todas as condições de captura.
+TESTE 8 — CAPTURA
+Confirmar que apenas as peças autorizadas pela regra activa são removidas e registadas.
+TESTE 9 — FASE INDIVIDUAL
+Criar uma posição de teste que satisfaça a condição de transição e confirmar que a fase muda correctamente.
+TESTE 10 — VITÓRIA
+Criar uma posição em que um jogador satisfaz a condição de vitória e confirmar o resultado.
+TESTE 11 — DESFAZER
+Executar uma jogada, desfazê-la e confirmar que o estado regressa exactamente à posição anterior.
+TESTE 12 — IA
+Confirmar que todos os movimentos da IA são legais e que a partida continua a respeitar as invariantes.
+TESTE 13 — ORIENTAÇÃO
+Confirmar a sequência anti-horária com posições de referência para os dois jogadores.
+TESTE 14 — REINÍCIO
+Reiniciar a partida e confirmar que o estado inicial é restaurado.
+TESTE 15 — POSIÇÕES LIMITE
+Testar casas vazias, casas com uma peça, capturas múltiplas permitidas, falta de jogadas legais e posições de fim de jogo.
+Não inventar resultados de testes. Executar os testes no ambiente de desenvolvimento e apresentar os resultados reais, indicando os que passaram e os que falharam.
+17. CRITÉRIOS DE ACEITAÇÃO
+Considerar a primeira versão funcional apenas quando:
+- O tabuleiro contém exactamente 32 casas.
+- Os dois jogadores conseguem jogar.
+- As jogadas ilegais são bloqueadas.
+- A distribuição é reproduzível.
+- A captura segue exactamente o perfil activo.
+- A fase do jogo é controlada pelo motor.
+- O resultado é calculado pelas regras.
+- A IA só efectua jogadas legais.
+- A interface funciona em diferentes tamanhos de ecrã.
+- Os testes essenciais passam.
+- As regras activas podem ser consultadas.
+- As regras provisórias estão identificadas.
+- É possível iniciar uma nova partida sem recarregar a aplicação.
+18. ORGANIZAÇÃO DOS FICHEIROS
+Criar uma estrutura semelhante a:
+src/
+app/
+components/
+Board.tsx
+Pit.tsx
+PlayerPanel.tsx
+GameControls.tsx
+MoveHistory.tsx
+RulesDialog.tsx
+engine/
+gameEngine.ts
+moveGenerator.ts
+sowing.ts
+capture.ts
+phaseManager.ts
+victory.ts
+invariants.ts
+rules/
+ruleProfile.ts
+ntxuvaSouth4x8.ts
+ai/
+opponent.ts
+evaluation.ts
+search.ts
+state/
+gameReducer.ts
+persistence.ts
+tests/
+initialization.test.ts
+moves.test.ts
+captures.test.ts
+phases.test.ts
+victory.test.ts
+invariants.test.ts
+styles/
+theme.css
+Podes ajustar esta estrutura, mas mantém a separação entre interface, regras, estado, inteligência artificial e testes.
+19. MÉTODO DE DESENVOLVIMENTO
+Trabalha por etapas:
+ETAPA A — Criar o tabuleiro e a interface responsiva.
+ETAPA B — Implementar a inicialização e o estado do jogo.
+ETAPA C — Implementar a geração e validação das jogadas.
+ETAPA D — Implementar a distribuição, a continuação e as capturas.
+ETAPA E — Implementar as fases e as condições de vitória.
+ETAPA F — Implementar o histórico, desfazer, refazer e reiniciar.
+ETAPA G — Implementar o adversário informático.
+ETAPA H — Criar o tutorial e as definições das variantes.
+ETAPA I — Executar os testes, corrigir erros e verificar a interface.
+Não avances para uma nova etapa enquanto a etapa anterior apresentar erros essenciais.
+20. ENTREGA FINAL
+Entregar uma aplicação funcional com:
+- Código-fonte completo.
+- Interface visual operacional.
+- Motor de regras separado.
+- Perfil experimental configurável do Ntxuva do Sul.
+- Modo de dois jogadores.
+- Modo contra o computador.
+- Tutorial interactivo.
+- Histórico de jogadas.
+- Testes automatizados.
+- Manual das regras implementadas.
+- Lista das regras que ainda necessitam de validação tradicional.
+- Instruções para executar, testar e publicar a aplicação.
+Começa agora pela implementação efectiva da aplicação, não apenas por uma explicação. Gera os ficheiros, executa os testes disponíveis, corrige os erros encontrados e apresenta a aplicação no ambiente de pré-visualização.
+Se houver ambiguidades nas regras, não inventes uma tradição única. Isola a ambiguidade num parâmetro configurável, documenta a decisão provisória e continua a desenvolver as partes que podem ser implementadas com segurança.
+
+
+
+
+3. Como confirmar se a IA construiu o jogo correctamente
+Depois de a primeira versão aparecer na pré-visualização, não basta verificar se o tabuleiro está bonito. Use os seguintes testes manuais.
+Lista de verificação
+0/9
+
+
+
+[ ] Tabuleiro
+Existem exactamente 4 filas e 8 casas em cada fila.
+
+[ ] Distribuição inicial
+Com 2 peças por casa, existem 64 peças no total.
+
+[ ] Selecção
+O jogo impede seleccionar uma casa que não seja permitida pela regra activa.
+
+[ ] Distribuição
+As peças percorrem as casas na ordem configurada, sem saltos indevidos.
+
+[ ] Capturas
+As peças removidas correspondem exactamente à regra de captura escolhida.
+
+[ ] Mudança de turno
+O turno só muda quando a jogada termina segundo as regras.
+
+[ ] Vitória
+O jogo termina quando se verifica a condição de vitória configurada.
+
+[ ] Computador
+O adversário informático não executa jogadas ilegais.
+
+[ ] Reinício
+Uma nova partida restaura correctamente todas as casas e contadores.
+
+Copiar lista de testes
+4. Segundo prompt: corrigir a lógica depois da primeira geração
+Se o AI Studio produzir uma aplicação visualmente correcta, mas com movimentos errados, submeta esta segunda instrução:
+Analisa integralmente o código actual do BOA-MZ e faz uma auditoria ao motor de regras do Ntxuva.
+Não redesenhes a interface sem necessidade. Concentra-te na correcção lógica do jogo.
+1. Verifica a correspondência entre as 32 casas, os dois jogadores e as filas de ataque e defesa.
+2. Verifica o percurso anti-horário para ambos os jogadores, usando uma tabela explícita de casas sucessivas.
+3. Verifica a distribuição de todas as peças e a regra de continuação.
+4. Verifica a captura quando a última peça termina numa casa vazia de ataque.
+5. Verifica a condição de fim de jogada quando termina numa casa vazia de defesa.
+6. Verifica a transição para a fase de peças individuais.
+7. Verifica todas as condições de vitória.
+8. Verifica que as jogadas ilegais não alteram o estado.
+9. Verifica que o histórico e a função de desfazer restauram a posição exacta.
+10. Executa os testes automatizados e corrige os erros encontrados.
+Cria testes adicionais para cada regra, incluindo posições de tabuleiro previamente definidas e resultados esperados.
+Não declares os testes como aprovados sem os executar. Apresenta um relatório com: regra testada, posição inicial, jogada executada, resultado esperado, resultado obtido e estado do teste.
+Não alteres silenciosamente as regras culturais. Se uma regra não estiver definida ou confirmada, mantém-na configurável e assinala-a como pendente de validação. Entrega o código corrigido e mantém a aplicação funcional na pré-visualização.
+
+
+
+
+5. Terceiro prompt: validar a variante moçambicana
+Este passo é essencial para evitar que o BOA-MZ reproduza uma mistura de regras de Ntxuva, Ntchuva, M’pale e outras variantes.
+Prepara um módulo de validação cultural e documental para o BOA-MZ.
+Para cada regra do perfil NTXUVA-SUL-4X8, cria uma ficha contendo:
+- Código da regra.
+- Descrição.
+- Fonte documental, quando existir.
+- Evidência de que se aplica ao Ntxuva do Sul de Moçambique.
+- Estado: documentada, provisória ou por validar.
+- Parâmetro técnico que controla a regra.
+- Posição de tabuleiro usada para demonstrar a regra.
+- Resultado esperado.
+- Campo para observações de praticantes experientes.
+- Data e versão de validação.
+Não consideres uma regra confirmada apenas porque aparece numa aplicação informática ou numa descrição de outra região.
+Prepara um modo de demonstração em que se possa escolher uma posição, executar uma jogada e verificar visualmente o resultado.
+As regras que não estejam confirmadas devem permanecer configuráveis. A aplicação deve guardar o perfil e a sua versão para que uma alteração futura não modifique silenciosamente as partidas antigas.
+Gera também uma ficha de recolha de informação para entrevistas com jogadores experientes do Sul de Moçambique, incluindo perguntas sobre ataque, defesa, distribuição, capturas, fuga, peças individuais, fim do jogo e variantes locais.
+
+
+
+
+6. Fontes para orientar a implementação
+- Google AI Studio — Build mode: documentação oficial sobre criação e iteração de aplicações. 
+  
+  Google AI for Developers
+  +1
+- Descrição do Ntchuva — Planeta Editora: referência descritiva para tabuleiro, distribuição, fases e captura, que deverá ser confrontada com a variante regional escolhida. 
+  
+  Planeta Editora
+- Ntxuva.org — implementação digital e regras publicadas: útil para comparação de funcionalidades e regras; não deve ser tratado isoladamente como autoridade definitiva para todas as variantes. 
+  
+  Traditional Mozambican Mancala Game
+- Estudo académico sobre M’pale e jogos Mancala em Moçambique: contexto sobre as variantes, dimensões de tabuleiros e diversidade regional. 
+  
+  repositorio.ufc.br
+A minha recomendação técnica: construa primeiro o motor de regras e o modo local para dois jogadores. Só depois de validar as capturas, o percurso e a transição de fase com praticantes do Sul de Moçambique deverá consolidar a variante como versão 1.0 e aperfeiçoar o adversário informático. Isso reduz o risco de criar um jogo visualmente convincente, mas que não reproduz correctamente a prática tradicional.

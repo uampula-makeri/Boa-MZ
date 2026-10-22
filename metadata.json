@@ -1,0 +1,8 @@
+{
+  "name": "Remix BOA-MZ — Ntxuva Moçambicano",
+  "description": "Jogo tradicional do Ntxuva com tabuleiro 4×8, motor de regras configurável, IA e validação cultural.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
