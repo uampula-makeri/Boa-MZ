@@ -122,23 +122,23 @@ export function executeSowing(
         if (profile.emptyAttackTriggersCapture) {
           const captureResult = evaluateCapture(lastLandingPitId, board, profile);
           if (captureResult.canCapture) {
-            // Executar captura
+            // Executar captura: registar passo individual para cada cova adversária capturada
             for (const cPitId of captureResult.capturedPitIds) {
               const count = board[cPitId] || 0;
               board[cPitId] = 0;
               capturedPitIds.push(cPitId);
               capturedCount += count;
-            }
 
-            steps.push({
-              type: 'capture',
-              pitId: lastLandingPitId,
-              seedsDelta: captureResult.totalCaptured,
-              seedsNow: board[lastLandingPitId],
-              seedsInHand: 0,
-              player,
-              note: `Captura realizada! ${captureResult.totalCaptured} sementes retiradas de [${captureResult.capturedPitIds.join(', ')}].`,
-            });
+              steps.push({
+                type: 'capture',
+                pitId: cPitId,
+                seedsDelta: count,
+                seedsNow: 0,
+                seedsInHand: count,
+                player,
+                note: `Recolha de ${count} semente(s) capturada(s) da cova adversária ${cPitId}`,
+              });
+            }
 
             if (profile.relayAfterCapture) {
               seedsInHand = captureResult.totalCaptured;

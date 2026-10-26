@@ -34,18 +34,16 @@ export function getLegalMoves(
 
   let candidatePits: typeof pitsWithSeeds = [];
 
-  if (phase === 'phase2_singles') {
+  // REGRA FUNDAMENTAL E EQUITATIVA (Válida para o Jogador A e para o Computador/Jogador B):
+  // Não é permitido jogar de uma cova com 1 semente antes de acabar as covas com mais de uma semente (>= 2).
+  // Apenas quando esgotarem todas as covas com >= 2 sementes (groupPits.length === 0)
+  // é que as covas com 1 semente se tornam jogáveis!
+  if (groupPits.length > 0) {
+    candidatePits = groupPits;
+  } else if (profile.allowSingleSeedWhenNoGroups || phase === 'phase2_singles') {
     candidatePits = pitsWithSeeds;
   } else {
-    // Fase 1
-    if (groupPits.length > 0) {
-      candidatePits = groupPits;
-    } else if (profile.allowSingleSeedWhenNoGroups) {
-      // Se não há casas com >= 2 peças, permite mover casas com 1 peça
-      candidatePits = pitsWithSeeds;
-    } else {
-      return [];
-    }
+    return [];
   }
 
   // 3. Avaliar simulação preliminar para cada casa candidata
@@ -97,13 +95,20 @@ export function validateMove(
     return { valid: false, reason: `A casa ${originPitId} está vazia.` };
   }
 
+  // Validação explícita da regra: não jogar de cova de 1 semente antes de acabar covas com > 1
+  const playerPits = getPlayerPits(player);
+  const groupPits = playerPits.filter(p => (board[p.id] || 0) >= 2);
+  if (seeds === 1 && groupPits.length > 0) {
+    return {
+      valid: false,
+      reason: 'Não é permitido jogar de uma cova com 1 semente antes de acabar as covas com mais de uma semente.',
+    };
+  }
+
   const legalMoves = getLegalMoves(board, player, phase, profile);
   const isLegal = legalMoves.some(m => m.pitId === originPitId);
 
   if (!isLegal) {
-    if (seeds === 1 && phase === 'phase1_groups' && !profile.allowSingleSeedWhenNoGroups) {
-      return { valid: false, reason: 'Na Fase 1 é obrigatório jogar de casas com 2 ou mais sementes.' };
-    }
     if (profile.mandatoryCapture && legalMoves.some(m => m.isCapture)) {
       return { valid: false, reason: 'Captura obrigatória activada: deve escolher uma jogada que capture sementes.' };
     }

@@ -10,31 +10,32 @@ export function checkPhaseTransition(
   currentPhase: GamePhase,
   profile: RuleProfile
 ): { newPhase: GamePhase; changed: boolean; reason?: string } {
-  if (currentPhase === 'phase2_singles') {
-    // Já está na fase 2
-    return { newPhase: 'phase2_singles', changed: false };
-  }
-
   if (!profile.autoPhase2Transition) {
     return { newPhase: currentPhase, changed: false };
   }
 
-  // Verificar se o jogador tem alguma casa com >= 2 sementes
+  // Verificar se o jogador activo tem alguma casa com >= 2 sementes
   const playerPits = getPlayerPits(player);
   const hasGroups = playerPits.some(p => (board[p.id] || 0) >= 2);
 
-  if (!hasGroups) {
-    const totalSeeds = playerPits.reduce((acc, p) => acc + (board[p.id] || 0), 0);
-    if (totalSeeds > 0) {
-      return {
-        newPhase: 'phase2_singles',
-        changed: true,
-        reason: `Jogador ${player} ficou apenas com peças isoladas (sem grupos >= 2). Activação da Fase 2.`
-      };
-    }
+  if (hasGroups) {
+    return {
+      newPhase: 'phase1_groups',
+      changed: currentPhase !== 'phase1_groups',
+      reason: currentPhase !== 'phase1_groups' ? `Jogador ${player} possui grupos (≥ 2 sementes).` : undefined,
+    };
   }
 
-  return { newPhase: 'phase1_groups', changed: false };
+  const totalSeeds = playerPits.reduce((acc, p) => acc + (board[p.id] || 0), 0);
+  if (totalSeeds > 0) {
+    return {
+      newPhase: 'phase2_singles',
+      changed: currentPhase !== 'phase2_singles',
+      reason: `Jogador ${player} esgotou todas as covas com mais de uma semente (apenas peças isoladas).`,
+    };
+  }
+
+  return { newPhase: currentPhase, changed: false };
 }
 
 /**
@@ -46,15 +47,11 @@ export function canMoveSingleSeed(
   currentPhase: GamePhase,
   profile: RuleProfile
 ): boolean {
-  if (currentPhase === 'phase2_singles') {
-    return true;
+  const playerPits = getPlayerPits(player);
+  const hasGroups = playerPits.some(p => (board[p.id] || 0) >= 2);
+  // Regra fundamental: NUNCA se pode mover semente única enquanto houver covas com >= 2 sementes
+  if (hasGroups) {
+    return false;
   }
-  
-  if (profile.allowSingleSeedWhenNoGroups) {
-    const playerPits = getPlayerPits(player);
-    const hasGroups = playerPits.some(p => (board[p.id] || 0) >= 2);
-    return !hasGroups; // Se não tem grupos, pode mover sementes únicas
-  }
-  
-  return false;
+  return profile.allowSingleSeedWhenNoGroups || currentPhase === 'phase2_singles';
 }

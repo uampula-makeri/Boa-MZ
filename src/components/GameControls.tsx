@@ -1,5 +1,5 @@
 import React from 'react';
-import { RotateCcw, Volume2, VolumeX, Lightbulb, Settings, BookOpen, ShieldCheck, PlayCircle, Award } from 'lucide-react';
+import { RotateCcw, Volume2, VolumeX, Lightbulb, Settings, BookOpen, ShieldCheck, PlayCircle, Award, Maximize2, Minimize2, Hand } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 
 interface GameControlsProps {
@@ -7,6 +7,8 @@ interface GameControlsProps {
   soundEnabled: boolean;
   showHints: boolean;
   invariantStatus: { valid: boolean; totalSeeds: number; message: string };
+  isFullscreen?: boolean;
+  showHumanHand?: boolean;
   onUndo: () => void;
   onRestart: () => void;
   onToggleSound: () => void;
@@ -16,6 +18,8 @@ interface GameControlsProps {
   onOpenSettings: () => void;
   onOpenTests: () => void;
   onOpenTutorial: () => void;
+  onToggleFullscreen?: () => void;
+  onToggleHand?: () => void;
 }
 
 export const GameControls: React.FC<GameControlsProps> = ({
@@ -23,6 +27,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   soundEnabled,
   showHints,
   invariantStatus,
+  isFullscreen = false,
+  showHumanHand = true,
   onUndo,
   onRestart,
   onToggleSound,
@@ -32,6 +38,8 @@ export const GameControls: React.FC<GameControlsProps> = ({
   onOpenSettings,
   onOpenTests,
   onOpenTutorial,
+  onToggleFullscreen,
+  onToggleHand,
 }) => {
   const { t } = useLanguage();
 
@@ -93,6 +101,25 @@ export const GameControls: React.FC<GameControlsProps> = ({
           {soundEnabled ? <Volume2 className="w-4 h-4 text-emerald-700" /> : <VolumeX className="w-4 h-4 text-stone-600" />}
           <span className="hidden sm:inline">{soundEnabled ? t.soundBtn : t.muteBtn}</span>
         </button>
+
+        {onToggleHand && (
+          <button
+            type="button"
+            onClick={onToggleHand}
+            title="Ativar ou desativar a mão humana animada"
+            className={`
+              flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border-2 font-black transition-all cursor-pointer shadow-xs text-xs sm:text-sm
+              ${
+                showHumanHand
+                  ? 'bg-amber-100 text-amber-950 border-amber-600'
+                  : 'bg-[#fffdfa] hover:bg-white text-stone-950 border-amber-900/40'
+              }
+            `}
+          >
+            <Hand className="w-4 h-4 text-amber-800" />
+            <span className="hidden sm:inline">{t.handToggleBtn}</span>
+          </button>
+        )}
       </div>
 
       {/* Auditoria de Invariantes & Acesso a Ferramentas */}
@@ -109,6 +136,25 @@ export const GameControls: React.FC<GameControlsProps> = ({
           <ShieldCheck className="w-4 h-4 text-emerald-700" />
           <span>{invariantStatus.totalSeeds} {t.conservedSeedsTag.split(' ')[0]}</span>
         </div>
+
+        {onToggleFullscreen && (
+          <button
+            type="button"
+            onClick={onToggleFullscreen}
+            title={isFullscreen ? `${t.exitFullscreenBtn} (F / Esc)` : `${t.fullscreenBtn} (F)`}
+            className={`
+              flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border-2 font-black cursor-pointer transition-all shadow-xs text-xs sm:text-sm
+              ${
+                isFullscreen
+                  ? 'bg-amber-500 text-stone-950 border-amber-700 shadow-md animate-pulse'
+                  : 'bg-[#fffdfa] hover:bg-white text-stone-950 border-amber-900/40'
+              }
+            `}
+          >
+            {isFullscreen ? <Minimize2 className="w-4 h-4 text-stone-950" /> : <Maximize2 className="w-4 h-4 text-amber-800" />}
+            <span className="hidden md:inline">{isFullscreen ? t.exitFullscreenBtn : t.fullscreenBtn}</span>
+          </button>
+        )}
 
         <button
           type="button"

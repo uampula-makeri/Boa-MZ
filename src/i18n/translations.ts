@@ -17,6 +17,10 @@ export interface TranslationDictionary {
   turnLabel: string;
   phase1Title: string;
   phase2Title: string;
+  fullscreenBtn: string;
+  exitFullscreenBtn: string;
+  handToggleBtn: string;
+  handScoopCapture: string;
   
   // Menu Screen
   playVsAI: string;
@@ -142,6 +146,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     turnLabel: 'Turno',
     phase1Title: 'Fase 1: Grupos (≥2)',
     phase2Title: 'Fase 2: Peças Individuais',
+    fullscreenBtn: 'Ecrã Inteiro',
+    exitFullscreenBtn: 'Sair do Ecrã Inteiro',
+    handToggleBtn: 'Mão Animada',
+    handScoopCapture: 'Recolha adversária',
 
     playVsAI: 'Jogar Contra o Computador',
     pressEnterSpace: 'Enter / Espaço',
@@ -257,6 +265,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     turnLabel: 'Turn',
     phase1Title: 'Phase 1: Groups (≥2)',
     phase2Title: 'Phase 2: Single Seeds',
+    fullscreenBtn: 'Fullscreen',
+    exitFullscreenBtn: 'Exit Fullscreen',
+    handToggleBtn: 'Animated Hand',
+    handScoopCapture: 'Scooping capture',
 
     playVsAI: 'Play Against Computer',
     pressEnterSpace: 'Enter / Space',
@@ -372,6 +384,10 @@ export const translations: Record<Language, TranslationDictionary> = {
     turnLabel: 'Tour',
     phase1Title: 'Phase 1: Groupes (≥2)',
     phase2Title: 'Phase 2: Graines Uniques',
+    fullscreenBtn: 'Plein Écran',
+    exitFullscreenBtn: 'Quitter Plein Écran',
+    handToggleBtn: 'Main Animée',
+    handScoopCapture: 'Prise adverse',
 
     playVsAI: 'Jouer Contre l’Ordinateur',
     pressEnterSpace: 'Entrée / Espace',

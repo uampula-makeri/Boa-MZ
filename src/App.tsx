@@ -14,8 +14,7 @@ import { selectAIMove } from './ai/opponent';
 import { sound } from './sound/audioSynth';
 import { TitleScreen } from './components/TitleScreen';
 import { Board } from './components/Board';
-import { PlayerPanel } from './components/PlayerPanel';
-import { GameControls } from './components/GameControls';
+import { CompactMatchHUD } from './components/CompactMatchHUD';
 import { MoveHistory } from './components/MoveHistory';
 import { TutorialModal } from './components/TutorialModal';
 import { CulturalValidationModal } from './components/CulturalValidationModal';
@@ -23,9 +22,8 @@ import { TestRunnerModal } from './components/TestRunnerModal';
 import { SettingsModal } from './components/SettingsModal';
 import { GameOverModal } from './components/GameOverModal';
 import { AuthenticBoardModal } from './components/AuthenticBoardModal';
-import { ArrowLeft, Sparkles, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { ArrowLeft, Sparkles, AlertCircle, Image as ImageIcon, Maximize2, Minimize2, Hand, ShieldCheck, BookOpen, Award, History, Smartphone } from 'lucide-react';
 import { useLanguage } from './i18n/LanguageContext';
-import { LanguageSelector } from './components/LanguageSelector';
 
 interface SowingProgress {
   isAnimating: boolean;
@@ -36,6 +34,8 @@ interface SowingProgress {
   sowedSequence: string[];
   liveBoard: Record<string, number> | null;
   capturedPitIds: string[];
+  stepType: 'pickup' | 'sow' | 'relay_pickup' | 'capture' | 'turn_end' | null;
+  actingPlayer: Player;
 }
 
 const initialSowingProgress: SowingProgress = {
@@ -47,6 +47,8 @@ const initialSowingProgress: SowingProgress = {
   sowedSequence: [],
   liveBoard: null,
   capturedPitIds: [],
+  stepType: null,
+  actingPlayer: 'A',
 };
 
 export default function App() {
@@ -68,6 +70,65 @@ export default function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAuthenticModal, setShowAuthenticModal] = useState(false);
   const [invalidMoveMessage, setInvalidMoveMessage] = useState<string | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Modo Ecrã Inteiro (Full Screen) & Mão Humana Animada
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showHumanHand, setShowHumanHand] = useState(true);
+  const [isPortraitMobile, setIsPortraitMobile] = useState(false);
+
+  useEffect(() => {
+    const checkOrientation = () => {
+      const isMobile = window.innerWidth <= 1024;
+      const isPortrait = window.innerHeight > window.innerWidth;
+      setIsPortraitMobile(isMobile && isPortrait);
+    };
+    checkOrientation();
+    window.addEventListener('resize', checkOrientation);
+    window.addEventListener('orientationchange', checkOrientation);
+    return () => {
+      window.removeEventListener('resize', checkOrientation);
+      window.removeEventListener('orientationchange', checkOrientation);
+    };
+  }, []);
+
+  // Monitorizar evento nativo de fullscreen para sincronização impecável
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(Boolean(document.fullscreenElement));
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
+  const handleToggleFullscreen = useCallback(async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (document.documentElement.requestFullscreen) {
+          await document.documentElement.requestFullscreen();
+        }
+        // Travar orientação na horizontal (landscape) em tablets e celulares
+        if (window.screen?.orientation && 'lock' in window.screen.orientation) {
+          try {
+            await (window.screen.orientation as any).lock('landscape');
+          } catch {
+            // Silenciosamente ignorado em navegadores/dispositivos sem permissão
+          }
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        }
+        if (window.screen?.orientation && 'unlock' in window.screen.orientation) {
+          try {
+            (window.screen.orientation as any).unlock();
+          } catch {}
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request failed:', err);
+    }
+  }, []);
 
   // Referência ao estado mais recente para o loop de IA
   const gameStateRef = useRef(gameState);
@@ -178,20 +239,20 @@ export default function App() {
         return;
       }
 
-      // Cadência rápida e ágil para eliminar lentidão percebida
+      // Cadência rápida e ágil para eliminar lentidão percebida e conferir presença à mão humana
       const speedMs =
         currentState.config.animationSpeed === 'slow'
-          ? 130
+          ? 170
           : currentState.config.animationSpeed === 'fast'
-          ? 40
-          : 75;
+          ? 60
+          : 90;
 
       const runningBoard: Record<string, number> = { ...currentState.board };
       let stepIdx = 0;
       let currentSeq: string[] = [];
       let currentCaptured: string[] = [];
 
-      // Estado inicial da animação
+      // Estado inicial da animação com mão posicionada sobre a cova de origem
       setSowing({
         isAnimating: true,
         activePitId: originPitId,
@@ -201,6 +262,8 @@ export default function App() {
         sowedSequence: [],
         liveBoard: { ...runningBoard },
         capturedPitIds: [],
+        stepType: result.steps[0]?.type || null,
+        actingPlayer: result.steps[0]?.player || currentState.currentPlayer,
       });
 
       sowingTimerRef.current = setInterval(() => {
@@ -216,6 +279,8 @@ export default function App() {
             lastLandingPitId: finalLandingPit,
             sowedSequence: result.sowedPits,
             capturedPitIds: result.capturedPitIds,
+            stepType: null,
+            actingPlayer: currentState.currentPlayer,
           });
           return;
         }
@@ -242,7 +307,7 @@ export default function App() {
           }
         }
 
-        // Uma única atualização de estado atómica por passo (evita re-renderizações em cascata)
+        // Uma única atualização de estado atómica por passo (acompanhando a mão e as sementes)
         setSowing({
           isAnimating: true,
           activePitId: step.pitId,
@@ -252,6 +317,8 @@ export default function App() {
           sowedSequence: currentSeq,
           liveBoard: { ...runningBoard },
           capturedPitIds: currentCaptured,
+          stepType: step.type,
+          actingPlayer: step.player,
         });
 
         stepIdx++;
@@ -379,7 +446,13 @@ export default function App() {
 
       if (screen === 'playing') {
         if (e.key === 'Escape') {
-          setScreen('title');
+          if (isFullscreen && document.fullscreenElement) {
+            document.exitFullscreen().catch(() => {});
+          } else {
+            setScreen('title');
+          }
+        } else if (e.key === 'f' || e.key === 'F') {
+          handleToggleFullscreen();
         } else if (e.key === 'u' || e.key === 'U') {
           handleUndo();
         } else if (e.key === 'r' || e.key === 'R') {
@@ -394,7 +467,7 @@ export default function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [screen, gameState.config.soundEnabled, handleUndo, handleRestart]);
+  }, [screen, gameState.config.soundEnabled, handleUndo, handleRestart, handleToggleFullscreen, isFullscreen]);
 
   // Contagem de sementes nos lados dos jogadores (acompanhando o tabuleiro ao vivo)
   const activeBoard = sowing.liveBoard || gameState.board;
@@ -427,82 +500,69 @@ export default function App() {
           onOpenAuthenticShowcase={() => setShowAuthenticModal(true)}
         />
       ) : (
-        <div className="relative z-10 flex-1 flex flex-col justify-between p-2 sm:p-4 md:p-6 max-w-6xl mx-auto w-full">
-          {/* Barra Superior da Partida */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pb-2 mb-2 border-b-2 border-amber-900/25">
-            <div className="flex items-center gap-3">
+        <div className={`relative z-10 flex-1 flex flex-col justify-between w-full h-full transition-all duration-300 ${isFullscreen ? 'p-0' : 'p-0.5 sm:p-1'}`}>
+          {/* HUD Superior Consolidado: Agrupa Jogador B, Jogador A, Turno, Fase e Ações Rápidas */}
+          <CompactMatchHUD
+            playerA={{
+              seedsOnBoard: seedsOnBoardA,
+              capturedCount: gameState.capturedA,
+              isCurrent: gameState.currentPlayer === 'A',
+            }}
+            playerB={{
+              seedsOnBoard: seedsOnBoardB,
+              capturedCount: gameState.capturedB,
+              isCurrent: gameState.currentPlayer === 'B',
+              isAI: gameState.config.mode === 'ai',
+              isThinkingAI: isThinkingAI,
+            }}
+            turnCount={gameState.turnCount}
+            phase={gameState.phase}
+            profile={gameState.config.profile}
+            canUndo={gameState.history.length > 0 && !sowing.isAnimating && !isThinkingAI}
+            soundEnabled={gameState.config.soundEnabled}
+            showHints={gameState.config.showHints}
+            showHumanHand={showHumanHand}
+            isFullscreen={isFullscreen}
+            onBackToMenu={() => setScreen('title')}
+            onUndo={handleUndo}
+            onRestart={handleRestart}
+            onToggleSound={() => handleUpdateConfig({ soundEnabled: !gameState.config.soundEnabled })}
+            onToggleHints={() => handleUpdateConfig({ showHints: !gameState.config.showHints })}
+            onToggleHand={() => setShowHumanHand(prev => !prev)}
+            onToggleFullscreen={handleToggleFullscreen}
+            onOpenTutorial={() => setShowTutorial(true)}
+            onOpenDossier={() => setShowDossier(true)}
+            onOpenSettings={() => setShowSettings(true)}
+            onOpenTests={() => setShowTests(true)}
+          />
+
+          {/* Dica amigável e botão de horizontal quando em telemóvel/tablet em modo vertical */}
+          {isPortraitMobile && !isFullscreen && (
+            <div className="mx-2 mt-1 px-3 py-1.5 rounded-lg bg-amber-200 border-2 border-black text-black text-xs font-black flex items-center justify-between gap-2 shadow-sm animate-pulse">
+              <div className="flex items-center gap-1.5">
+                <Smartphone className="w-4 h-4 text-black rotate-90 shrink-0" />
+                <span>Vire na horizontal ou use Tela Cheia para ampliar o tabuleiro ao máximo!</span>
+              </div>
               <button
                 type="button"
-                onClick={() => setScreen('title')}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#fffdfa] hover:bg-white text-stone-950 text-xs sm:text-sm font-black border-2 border-amber-900/30 shadow-xs cursor-pointer transition-all"
+                onClick={handleToggleFullscreen}
+                className="px-2 py-0.5 rounded bg-black text-white text-[11px] font-black cursor-pointer hover:bg-stone-800 shrink-0"
               >
-                <ArrowLeft className="w-4 h-4 text-amber-800" />
-                <span className="hidden sm:inline">{t.mainMenuBtn}</span>
+                Tela Cheia ⛶
               </button>
-              <div>
-                <h1 className="text-base sm:text-lg font-black tracking-wider text-amber-950">
-                  {t.gameTitle}
-                </h1>
-                <span className="text-xs text-amber-950/90 font-mono font-bold">
-                  {gameState.config.profile.name}
-                </span>
-              </div>
             </div>
-
-            {/* Fase do Jogo, Idioma & Turno */}
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Seletor de Idioma */}
-              <LanguageSelector />
-
-              <button
-                type="button"
-                onClick={() => setShowAuthenticModal(true)}
-                className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-xl bg-[#fffdfa] hover:bg-white border-2 border-amber-900/30 text-amber-950 text-xs font-black cursor-pointer transition-all shadow-xs"
-              >
-                <ImageIcon className="w-3.5 h-3.5 text-amber-800" />
-                <span>{t.photoRealBtn}</span>
-              </button>
-              <div className="px-3 py-1 rounded-xl bg-[#fffdfa] border-2 border-amber-900/30 text-xs font-mono text-stone-950 shadow-xs">
-                <span className="text-stone-800 font-bold">{t.turnLabel}:</span>{' '}
-                <b className="text-amber-950 font-black">{gameState.turnCount}</b>
-              </div>
-              <div
-                className={`px-3 py-1 rounded-xl border-2 text-xs font-black shadow-xs ${
-                  gameState.phase === 'phase1_groups'
-                    ? 'bg-amber-100 text-amber-950 border-amber-600'
-                    : 'bg-purple-100 text-purple-950 border-purple-600'
-                }`}
-              >
-                {gameState.phase === 'phase1_groups' ? t.phase1Title : t.phase2Title}
-              </div>
-            </div>
-          </div>
+          )}
 
           {/* Mensagem de Jogada Inválida se houver */}
           {invalidMoveMessage && (
-            <div className="mx-auto mb-2 px-4 py-2 rounded-xl bg-rose-100/95 border border-rose-500 text-rose-950 text-xs font-semibold flex items-center gap-2 shadow-md animate-bounce">
-              <AlertCircle className="w-4 h-4 text-rose-600" />
+            <div className="mx-auto mt-1 px-4 py-1.5 rounded-xl bg-rose-200 border-2 border-black text-black text-xs font-black flex items-center gap-2 shadow-md animate-bounce z-30">
+              <AlertCircle className="w-4 h-4 text-rose-700" />
               <span>{invalidMoveMessage}</span>
             </div>
           )}
 
-          {/* Painéis dos Jogadores Norte (B) */}
-          <div className="flex justify-center mb-2">
-            <PlayerPanel
-              player="B"
-              isCurrent={gameState.currentPlayer === 'B'}
-              capturedCount={gameState.capturedB}
-              seedsOnBoard={seedsOnBoardB}
-              phase={gameState.phase}
-              mode={gameState.config.mode}
-              aiDifficulty={gameState.config.aiDifficulty}
-              isThinkingAI={isThinkingAI}
-            />
-          </div>
-
-          {/* Tabuleiro Central Dominante com Sensação Física */}
-          {/* Tabuleiro Central Dominante com Sensação Física e Zero Tremor */}
-          <div className="my-auto py-2">
+          {/* Tabuleiro Central Maximizado com Letras Pretas e Máximo Espaço Útil */}
+          <main className="flex-1 w-full flex items-center justify-center p-1 sm:p-2 md:p-3 overflow-x-auto my-auto">
             <Board
               board={activeBoard}
               currentPlayer={gameState.currentPlayer}
@@ -520,48 +580,113 @@ export default function App() {
               seedsInHand={sowing.seedsInHand}
               activeStepNote={sowing.stepNote}
               lastLandingPitId={sowing.lastLandingPitId}
+              stepType={sowing.stepType}
+              actingPlayer={sowing.actingPlayer}
+              animationSpeedMs={
+                gameState.config.animationSpeed === 'slow'
+                  ? 170
+                  : gameState.config.animationSpeed === 'fast'
+                  ? 60
+                  : 90
+              }
+              showHumanHand={showHumanHand}
+              isFullscreen={isFullscreen}
               onSelectPit={handlePlayMove}
               onOpenAuthenticShowcase={() => setShowAuthenticModal(true)}
+              onToggleFullscreen={handleToggleFullscreen}
+              onToggleHand={() => setShowHumanHand(prev => !prev)}
             />
-          </div>
+          </main>
 
-          {/* Painel do Jogador Sul (A) */}
-          <div className="flex justify-center mt-2 mb-3">
-            <PlayerPanel
-              player="A"
-              isCurrent={gameState.currentPlayer === 'A'}
-              capturedCount={gameState.capturedA}
-              seedsOnBoard={seedsOnBoardA}
-              phase={gameState.phase}
-              mode={gameState.config.mode}
-              aiDifficulty={gameState.config.aiDifficulty}
-              isThinkingAI={false}
-            />
-          </div>
+          {/* Rodapé Minimalista: Mantém Invariantes, Histórico e Guias sem Roubar Altura */}
+          <footer className="w-full bg-white/95 border-t-2 border-black px-2 sm:px-4 py-1 text-xs flex flex-wrap items-center justify-between gap-1.5 sm:gap-3 z-20 select-none">
+            {/* Selo de Invariantes Conservadas (64 Sementes) */}
+            <div
+              title={gameState.invariantAudit.message}
+              className={`flex items-center gap-1.5 px-2.5 py-0.5 rounded-lg border-2 font-mono text-xs font-black shadow-xs ${
+                gameState.invariantAudit.valid
+                  ? 'bg-emerald-200 border-black text-black'
+                  : 'bg-rose-200 border-black text-black animate-pulse'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-black" />
+              <span>{gameState.invariantAudit.totalSeeds} Sementes Conservadas</span>
+            </div>
 
-          {/* Controlos de Jogo */}
-          <div className="mb-3">
-            <GameControls
-              canUndo={gameState.history.length > 0 && !sowing.isAnimating && !isThinkingAI}
-              soundEnabled={gameState.config.soundEnabled}
-              showHints={gameState.config.showHints}
-              invariantStatus={gameState.invariantAudit}
-              onUndo={handleUndo}
-              onRestart={handleRestart}
-              onToggleSound={() => handleUpdateConfig({ soundEnabled: !gameState.config.soundEnabled })}
-              onToggleHints={() => handleUpdateConfig({ showHints: !gameState.config.showHints })}
-              onOpenRules={() => setShowTutorial(true)}
-              onOpenDossier={() => setShowDossier(true)}
-              onOpenSettings={() => setShowSettings(true)}
-              onOpenTests={() => setShowTests(true)}
-              onOpenTutorial={() => setShowTutorial(true)}
-            />
-          </div>
+            {/* Acesso ao Histórico Colapsável */}
+            <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowHistory(prev => !prev)}
+                className={`flex items-center gap-1 px-2.5 py-0.5 rounded-lg border-2 text-xs font-black cursor-pointer transition-all shadow-xs ${
+                  showHistory
+                    ? 'bg-amber-300 text-black border-black'
+                    : 'bg-stone-100 hover:bg-stone-200 text-black border-black'
+                }`}
+              >
+                <History className="w-3.5 h-3.5 text-black" />
+                <span>Histórico ({gameState.history.length})</span>
+              </button>
 
-          {/* Histórico Colapsável */}
-          <div className="mt-1">
-            <MoveHistory history={gameState.history} turnCount={gameState.turnCount} />
-          </div>
+              <button
+                type="button"
+                onClick={() => setShowTutorial(true)}
+                className="hidden sm:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-black border-2 border-black font-black text-xs cursor-pointer transition-all shadow-xs"
+              >
+                <Award className="w-3.5 h-3.5 text-black" />
+                <span>{t.tutorialBtn}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowDossier(true)}
+                className="hidden md:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-black border-2 border-black font-black text-xs cursor-pointer transition-all shadow-xs"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-black" />
+                <span>{t.rulesDossierBtn}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowTests(true)}
+                className="hidden lg:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-black border-2 border-black font-black text-xs cursor-pointer transition-all shadow-xs"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-black" />
+                <span>{t.testsBtn}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowAuthenticModal(true)}
+                className="hidden sm:flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-stone-100 hover:bg-stone-200 text-black border-2 border-black font-black text-xs cursor-pointer transition-all shadow-xs"
+              >
+                <ImageIcon className="w-3.5 h-3.5 text-black" />
+                <span>{t.photoRealBtn}</span>
+              </button>
+            </div>
+          </footer>
+
+          {/* Histórico Colapsável em Gaveta quando ativado */}
+          {showHistory && (
+            <div className="absolute inset-x-2 bottom-12 z-40 max-w-2xl mx-auto bg-white p-3 rounded-2xl border-4 border-black shadow-2xl">
+              <div className="flex items-center justify-between pb-2 mb-2 border-b-2 border-black">
+                <span className="font-black text-black text-sm flex items-center gap-1.5">
+                  <History className="w-4 h-4 text-black" />
+                  Registro de Todas as Jogadas ({gameState.history.length})
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowHistory(false)}
+                  className="px-2 py-0.5 rounded bg-black text-white text-xs font-black cursor-pointer hover:bg-stone-800"
+                >
+                  Fechar ✕
+                </button>
+              </div>
+              <div className="max-h-60 overflow-y-auto">
+                <MoveHistory history={gameState.history} turnCount={gameState.turnCount} />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

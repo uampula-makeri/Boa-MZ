@@ -1,6 +1,6 @@
 import { runAllAutomatedTests } from './testSuite';
 
-console.log('=== EXECUÇÃO DA BATERIA DE 15 TESTES DO BOA-MZ ===');
+console.log('=== EXECUÇÃO DA BATERIA DE TESTES DO BOA-MZ ===');
 const report = runAllAutomatedTests();
 console.log(`Total de Testes: ${report.totalTests}`);
 console.log(`Testes Aprovados: ${report.passedCount}`);

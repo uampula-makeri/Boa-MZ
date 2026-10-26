@@ -93,6 +93,7 @@ const PitComponent: React.FC<PitProps> = ({
   return (
     <button
       type="button"
+      data-pit-id={pit.id}
       onClick={onClick}
       onMouseEnter={onHover}
       onMouseLeave={onLeave}
@@ -100,19 +101,19 @@ const PitComponent: React.FC<PitProps> = ({
       aria-label={`Casa ${pit.id}, jogador ${pit.player}, ${isAttack ? 'linha de ataque' : 'linha de defesa'}, ${seeds} sementes`}
       className={`
         relative group flex flex-col items-center justify-center
-        w-12 h-12 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20
-        shrink-0 rounded-full select-none transition-colors duration-150
-        ${disabled || !isLegal ? 'cursor-default' : 'cursor-pointer'}
+        w-11 h-11 xs:w-13 xs:h-13 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24 xl:w-26 xl:h-26
+        shrink-0 rounded-full select-none transition-transform duration-150
+        ${disabled || !isLegal ? 'cursor-default' : 'cursor-pointer hover:scale-105 active:scale-95'}
         ${isSelected ? 'ring-4 ring-amber-500 shadow-2xl z-20' : ''}
-        ${isLegal && !isCurrentDropTarget ? 'ring-2 ring-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]' : ''}
-        ${isCurrentDropTarget ? 'ring-4 ring-amber-400 shadow-[0_0_24px_rgba(251,191,36,0.95)] z-30' : ''}
-        ${isLastLandingPit ? 'ring-4 ring-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.85)] z-25' : ''}
-        ${isHoveredLanding ? 'ring-4 ring-amber-500 shadow-[0_0_18px_rgba(245,158,11,0.8)] z-20' : ''}
-        ${isHoveredTrajectory && !isHoveredLanding ? 'ring-2 ring-amber-400/90 bg-amber-500/10' : ''}
-        ${isHoveredCapture ? 'ring-4 ring-rose-600 bg-rose-500/20 shadow-[0_0_18px_rgba(225,29,72,0.8)] z-20' : ''}
-        ${isSowedInTurn && !isCurrentDropTarget && !isLastLandingPit ? 'ring-2 ring-amber-400/80 shadow-[0_0_10px_rgba(251,191,36,0.4)]' : ''}
-        ${isCapturedInTurn ? 'ring-4 ring-rose-600 bg-rose-950/60 shadow-[0_0_18px_rgba(225,29,72,0.85)] z-25' : ''}
-        ${isTargetedByOpponent ? 'ring-2 ring-rose-500/90' : ''}
+        ${isLegal && !isCurrentDropTarget ? 'ring-2 sm:ring-4 ring-amber-400 shadow-[0_0_14px_rgba(251,191,36,0.85)]' : ''}
+        ${isCurrentDropTarget ? 'ring-4 ring-amber-300 shadow-[0_0_24px_rgba(251,191,36,1)] z-30 scale-105' : ''}
+        ${isLastLandingPit ? 'ring-4 ring-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.9)] z-25' : ''}
+        ${isHoveredLanding ? 'ring-4 ring-amber-400 shadow-[0_0_18px_rgba(251,191,36,0.9)] z-20' : ''}
+        ${isHoveredTrajectory && !isHoveredLanding ? 'ring-2 ring-amber-400 bg-amber-500/20' : ''}
+        ${isHoveredCapture ? 'ring-4 ring-rose-500 bg-rose-500/25 shadow-[0_0_18px_rgba(244,63,94,0.9)] z-20' : ''}
+        ${isSowedInTurn && !isCurrentDropTarget && !isLastLandingPit ? 'ring-2 ring-amber-300 shadow-[0_0_10px_rgba(251,191,36,0.5)]' : ''}
+        ${isCapturedInTurn ? 'ring-4 ring-rose-600 bg-rose-950/70 shadow-[0_0_18px_rgba(225,29,72,0.9)] z-25' : ''}
+        ${isTargetedByOpponent ? 'ring-2 ring-rose-400' : ''}
       `}
       style={{
         // Orifício circular escavado com iluminação côncava e madeira polida
@@ -122,15 +123,15 @@ const PitComponent: React.FC<PitProps> = ({
           : isCurrentDropTarget
           ? 'inset 0 8px 16px rgba(10,5,2,0.9), inset 0 -2px 5px rgba(255,225,180,0.5), 0 0 20px rgba(251,191,36,0.9)'
           : 'inset 0 6px 14px rgba(10,5,2,0.85), inset 0 -2px 4px rgba(255,225,180,0.3), 0 2px 5px rgba(60,25,8,0.35)',
-        border: isCurrentDropTarget ? '3px solid #f59e0b' : '2px solid rgba(140, 70, 25, 0.75)',
+        border: isCurrentDropTarget ? '3px solid #f59e0b' : '2px solid rgba(140, 70, 25, 0.85)',
       }}
     >
-      {/* Bordo biselado e talhado do orifício na madeira clara */}
-      <div className="absolute inset-0.5 rounded-full border border-amber-500/25 pointer-events-none" />
+      {/* Bordo biselado e talhado do orifício na madeira */}
+      <div className="absolute inset-0.5 rounded-full border border-amber-500/30 pointer-events-none" />
 
       {/* Indicador suave de semente a cair na cova (Sem abanar a tela) */}
       {isCurrentDropTarget && (
-        <div className="absolute -top-3.5 z-40 px-2 py-0.5 rounded-full bg-amber-400 text-stone-950 font-black text-[10px] sm:text-xs shadow-lg flex items-center gap-1 border border-amber-950 pointer-events-none">
+        <div className="absolute -top-3.5 z-40 px-2 py-0.5 rounded-full bg-amber-300 text-black font-black text-[10px] sm:text-xs shadow-lg flex items-center gap-1 border-2 border-black pointer-events-none">
           <span>+1</span>
           <span>🌰</span>
         </div>
@@ -138,7 +139,7 @@ const PitComponent: React.FC<PitProps> = ({
 
       {/* Indicador da Última Semente (pouso final da jogada) */}
       {(isLastLandingPit || isHoveredLanding) && !isCurrentDropTarget && (
-        <div className="absolute -top-3.5 z-30 px-2 py-0.5 rounded-full bg-emerald-700 text-emerald-50 border border-emerald-300 font-black text-[9px] sm:text-[10px] shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none">
+        <div className="absolute -top-3.5 z-30 px-2 py-0.5 rounded-full bg-emerald-300 text-black border-2 border-black font-black text-[9px] sm:text-xs shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none">
           <span>🎯</span>
           <span>Fim</span>
         </div>
@@ -146,7 +147,7 @@ const PitComponent: React.FC<PitProps> = ({
 
       {/* Indicador de Captura sob a mira na pré-visualização */}
       {isHoveredCapture && (
-        <div className="absolute -top-3.5 z-30 px-2 py-0.5 rounded-full bg-rose-700 text-rose-50 border border-rose-300 font-black text-[9px] sm:text-[10px] shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none">
+        <div className="absolute -top-3.5 z-30 px-2 py-0.5 rounded-full bg-rose-300 text-black border-2 border-black font-black text-[9px] sm:text-xs shadow-lg flex items-center gap-1 whitespace-nowrap pointer-events-none">
           <span>⚔</span>
           <span>Captura</span>
         </div>
@@ -154,50 +155,49 @@ const PitComponent: React.FC<PitProps> = ({
 
       {/* Número de ordem no percurso da semeadura (1, 2, 3...) */}
       {sowStepOrder && sowStepOrder > 0 && !isCurrentDropTarget && !isLastLandingPit && !isHoveredLanding && (
-        <div className="absolute -top-2 -right-1 z-25 w-5 h-5 rounded-full bg-amber-950 border border-amber-400 text-amber-200 font-mono font-black text-[10px] flex items-center justify-center shadow-md pointer-events-none">
+        <div className="absolute -top-2 -right-1 z-25 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-amber-300 border-2 border-black text-black font-mono font-black text-[10px] sm:text-xs flex items-center justify-center shadow-md pointer-events-none">
           {sowStepOrder}
         </div>
       )}
 
-      {/* Indicador de Tipo de Linha: Ataque vs Defesa */}
+      {/* Indicador de Tipo de Linha: Ataque vs Defesa em cor preta de alto contraste */}
       <div
-        className={`absolute -top-1 px-1.5 py-0.2 text-[9px] font-mono font-bold tracking-tighter uppercase rounded-sm border pointer-events-none shadow-2xs ${
+        className={`absolute -top-1 px-1.5 py-0.2 text-[9px] sm:text-[10px] font-mono font-black tracking-tighter uppercase rounded border-2 border-black text-black pointer-events-none shadow-xs ${
           isAttack
-            ? 'bg-rose-100 text-rose-950 border-rose-400'
-            : 'bg-emerald-100 text-emerald-950 border-emerald-400'
+            ? 'bg-rose-200'
+            : 'bg-emerald-200'
         } ${showCoordinates ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
       >
         {isAttack ? 'Atq' : 'Def'}
       </div>
 
       {/* Sementes físicas no interior do orifício */}
-      <div className="relative w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 flex items-center justify-center pointer-events-none">
+      <div className="relative w-7 h-7 xs:w-8 xs:h-8 sm:w-10 sm:h-10 md:w-13 md:h-13 lg:w-15 lg:h-15 flex items-center justify-center pointer-events-none">
         {renderPebbles()}
       </div>
 
-      {/* Contador numérico de sementes (tabular-nums com alto contraste e geometria fixa) */}
+      {/* Contador numérico de sementes: Letras e números em PRETO PURO com alto contraste */}
       <div
         className={`
-          absolute z-10 px-1.5 py-0.5 rounded-full text-xs sm:text-sm font-black tabular-nums shadow-md pointer-events-none
-          ${isCurrentDropTarget ? 'ring-2 ring-amber-400 bg-amber-200 text-stone-950' : ''}
+          absolute z-15 px-2 py-0.5 rounded-full text-xs sm:text-sm md:text-base font-black tabular-nums shadow-md pointer-events-none text-black border-2 border-black
           ${
-            seeds === 0
-              ? 'text-stone-400 bg-black/60 text-[10px]'
-              : isPlayerA && !isCurrentDropTarget
-              ? 'text-amber-950 bg-amber-100 border-2 border-amber-600'
-              : !isCurrentDropTarget
-              ? 'text-blue-950 bg-blue-100 border-2 border-blue-600'
-              : ''
+            isCurrentDropTarget
+              ? 'bg-amber-300 ring-2 ring-amber-500 scale-110'
+              : seeds === 0
+              ? 'bg-white/95 text-black border-black/70 text-[10px] sm:text-xs'
+              : isPlayerA
+              ? 'bg-amber-200'
+              : 'bg-sky-200'
           }
-          ${isLegal && !isCurrentDropTarget ? 'ring-2 ring-amber-500 font-black shadow-md' : ''}
+          ${isLegal && !isCurrentDropTarget ? 'ring-2 ring-amber-400' : ''}
         `}
       >
         {seeds}
       </div>
 
-      {/* Coordenada da Casa (ex: A0, B15) */}
+      {/* Coordenada da Casa (ex: A0, B15) em PRETO PURO com borda preta sólida */}
       {showCoordinates && (
-        <span className="absolute -bottom-1 text-[9px] font-mono font-bold text-amber-950 bg-[#fffdfa] px-1.5 py-0.2 rounded border border-amber-900/40 pointer-events-none shadow-2xs">
+        <span className="absolute -bottom-1.5 z-20 text-[10px] sm:text-xs font-mono font-black text-black bg-white px-1.5 py-0.5 rounded border-2 border-black pointer-events-none shadow-sm leading-none">
           {pit.id}
         </span>
       )}

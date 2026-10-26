@@ -701,6 +701,82 @@ export function runAllAutomatedTests(): TestSuiteReport {
     }
   }
 
+  // TESTE 16 — REGRA EQUITATIVA DE COVA DE 1 SEMENTE (HUMANO & COMPUTADOR)
+  {
+    const start = performance.now();
+    try {
+      const state = createInitialState();
+      // Limpar tabuleiro
+      for (const k of Object.keys(state.board)) {
+        state.board[k] = 0;
+      }
+
+      // Cenário para Jogador A:
+      // A0 tem 1 semente, A1 tem 1 semente, A2 tem 3 sementes (grupo >= 2). A3 tem 27 sementes.
+      state.board['A0'] = 1;
+      state.board['A1'] = 1;
+      state.board['A2'] = 3;
+      state.board['A3'] = 27;
+
+      // Cenário para Computador (Jogador B):
+      // B0 tem 1 semente, B1 tem 1 semente, B2 tem 4 sementes. B3 tem 26 sementes.
+      state.board['B0'] = 1;
+      state.board['B1'] = 1;
+      state.board['B2'] = 4;
+      state.board['B3'] = 26;
+
+      // 1. Verificação para Jogador A (Humano)
+      const valA0 = validateMove(state.board, 'A0', 'A', state.phase, state.config.profile);
+      const legalA = getLegalMoves(state.board, 'A', state.phase, state.config.profile);
+      const humanoNaoJoga1 = !valA0.valid && legalA.every(m => m.seeds >= 2);
+
+      // 2. Verificação para Jogador B (Computador)
+      state.currentPlayer = 'B';
+      const legalB = getLegalMoves(state.board, 'B', state.phase, state.config.profile);
+      const aiDecision = selectAIMove(state);
+      const computadorNaoJoga1 = legalB.every(m => m.seeds >= 2) &&
+        aiDecision !== null &&
+        (state.board[aiDecision.pitId] || 0) >= 2;
+
+      // 3. Verificação após acabar todas as covas com > 1 semente
+      // Quando B tem APENAS sementes individuais (B0=1, B1=1):
+      state.board['B2'] = 0;
+      state.board['B3'] = 0;
+      const legalBSomenteSingles = getLegalMoves(state.board, 'B', state.phase, state.config.profile);
+      const computadorJogaSinglesQuandoAcabamGrupos = legalBSomenteSingles.length === 2 &&
+        legalBSomenteSingles.every(m => m.seeds === 1);
+
+      const passed = humanoNaoJoga1 && computadorNaoJoga1 && computadorJogaSinglesQuandoAcabamGrupos;
+
+      results.push({
+        id: 'TEST-16',
+        name: 'TESTE 16 — Regra Equitativa de Covas com 1 Semente (Humano & Computador)',
+        description: 'Nem o Humano nem o Computador podem jogar de cova com 1 semente enquanto houver covas com ≥2 sementes. Só jogam de 1 quando acabarem todas as covas com mais de uma.',
+        passed,
+        initialPositionSummary: 'Covas com 1 semente e covas com ≥2 sementes coexistindo',
+        actionExecuted: 'validateMove(A0), getLegalMoves(A, B), selectAIMove(B)',
+        expectedResult: 'Covas de 1 semente rejeitadas para A e B enquanto houver grupos; permitidas só quando grupos esgotam',
+        obtainedResult: passed
+          ? 'Regra cumprida rigorosamente e de forma simétrica para ambos os jogadores'
+          : `Humano bloqueado: ${humanoNaoJoga1}, Computador bloqueado: ${computadorNaoJoga1}, Permite quando esgota: ${computadorJogaSinglesQuandoAcabamGrupos}`,
+        durationMs: performance.now() - start,
+      });
+    } catch (e: unknown) {
+      results.push({
+        id: 'TEST-16',
+        name: 'TESTE 16 — Regra de Cova com 1 Semente',
+        description: 'Falha',
+        passed: false,
+        initialPositionSummary: 'N/A',
+        actionExecuted: 'Teste de regra',
+        expectedResult: 'Sucesso',
+        obtainedResult: 'Erro',
+        durationMs: performance.now() - start,
+        error: e instanceof Error ? e.message : String(e),
+      });
+    }
+  }
+
   const passedCount = results.filter(r => r.passed).length;
   const failedCount = results.length - passedCount;
 
